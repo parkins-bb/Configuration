@@ -1,0 +1,46 @@
+----------安装 anaconda-----------------------
+1.用阿里云服务器linux比较传统的linux系统少一个组件：首先要安装这个组件
+终端：yum install bzip2  	# 安装bunzip2
+2.终端：wget https://repo.anaconda.com/archive/Anaconda3-5.3.1-Linux-x86_64.sh #将安装文件下载到本地
+2.终端：bash Anaconda3-5.3.1-Linux-x86_64.sh   # bash对脚本安装
+3.终端：vim ~/.bashrc 加入 export PATH=/root/anaconda3/bin:$PATH #为了在任何地方都可以打开jupyter,把Anaconda的bin文件路径添加到PATH中就行了。
+终端：source ~/.bashrc #重新执行刚修改的初始化文件，使之立即生效，而不必注销并重新登录
+------------配置jupyter---------------
+1.首先要生成密码,启动ipython
+终端：ipython
+2.创建远程连接密码
+In [1]: from notebook.auth import passwd; passwd()
+输入两次密码,将得到一个字符串,比如: 
+'sha1:d0270e88f33b:212384922803ca9bd49d1fb6c11ab42651ccb358' 保存后退出ipython
+3.生成jupyter的配置文件(注意此时已退出了ipython,是在原始终端下执行的)
+$ jupyter notebook --generate-config
+会出现：writing default config to:/home/yang/.jupyter/jupyter_notebook_config.py
+4.编辑配置文件
+vim ~/.jupyter/jupyter_notebook_config.py 
+
+c.NotebookApp.ip = '*' #允许所有ip访问
+c.NotebookApp.password = u'sha1:d0270e88f33b:212384922803ca9bd49d1fb6c11ab42651ccb358'#刚才复制的那个密文
+c.NotebookApp.port = 8889#(访问jupyter的端口)
+c.NotebookApp.open_browser = False # 是否打开浏览器
+c.NotebookApp.allow_root = Ture
+c.NotebookApp.allow_remote_access = True
+
+5.服务器有一个安全组规则，记得更改，就是防火墙的进出端口
+登录阿里云服务器找到安全组规则  添加自定义TCP 端口：8889 授权对象 0.0.0.0/0
+6.登录：http:外网ip:8889
+如果发现无法访问，一般是centos系统防火墙没有关闭，使用以下命令进行关闭
+终端：关闭firewall：
+
+systemctl stop firewalld.service #停止firewall
+
+systemctl disable firewalld.service #禁止firewall开机启动
+
+firewall-cmd --state #查看默认防火墙状态（关闭后显示notrunning，开启后显示running）
+
+----------------------------------------------
+
+
+
+
+
+

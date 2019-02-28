@@ -1,0 +1,49 @@
+---------------------------------
+Apache HTTP Server（简称Apache）是一个开放源码的网页服务器。
+是目前世界上使用最广泛的一种web server，
+它以跨平台，高效和稳定而闻名，可以运行在几乎所有广泛使用的计算机平台上。
+---------------------------------
+虚拟主机：
+虚拟主机指的是在单一机器上运行多个网站。
+----------------------------------
+apache服务器配置
+<VirtualHost *:80>
+      ServerName   YOUR_HOST_NAME_TO_REPLACE  //域名主机名
+      ServerAdmin  YOUR_EMAIL@COMPANY.COM  //管理员邮箱
+      DocumentRoot /data/www  //默认主页存放目录 
+
+      ErrorLog /data/logs/error.log   //错误日志的存放位置
+      CustomLog /data/logs/access.log combined   //访问日志的存放位置
+
+      <Directory /data/www>   //规定网站根目录的位置
+          Options Indexes FollowSymLinks
+          /*该虚拟目录下没有 index.html，浏览器也会显示该虚拟目录的目录结构，
+            列出该虚拟目录下的文件和子目录。
+            Indexes 去掉，就可以禁止 Apache 显示该目录结构。
+            用户就不会看到该目录下的文件和子目录列表了*/
+          Order allow,deny //Allow和Deny用来控制目录和文件的访问授权。
+          Allow from all   //全部允许 与上面是一组 
+
+          AllowOverride None 
+        /*即Apache允许另一配置文件覆盖现有配置文件。 
+          从安全性考虑，根目录的AllowOverride属性一般都配置成不允许任何Override,
+          即 None*/ 
+          Require all granted //允许所有来源访问
+      </Directory>
+
+      # Handle launcher forwarding//处理启动器转发
+      ProxyPass /paraview http://localhost:8080/paraview 
+     /*将远程服务器映射到本地服务器的URL空间
+      ProxyPass ProxyPass /mirror/foo/ http://backend.example.com/ 
+      将会导致对http://example.com/mirror/foo/bar的本地请求将会在内部
+      转换为一个代理请求：http://backend.example.com/bar 。 
+     */
+
+     # Handle WebSocket forwarding //处理WebSocket转发
+      RewriteEngine On
+      RewriteMap session-to-port txt:${MAPPING-FILE-DIR}/proxy.txt
+      RewriteCond %{QUERY_STRING} ^sessionId=(.*)&path=(.*)$ [NC]
+      RewriteRule ^/proxy.*$  ws://${session-to-port:%1}/%2  [P]
+     //正则表达式的写法
+</VirtualHost>
+  

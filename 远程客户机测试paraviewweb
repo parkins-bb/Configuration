@@ -1,0 +1,10 @@
+(1)进入Paraview的pvw/bin文件夹，执行start.sh文件，启动pvwserver：
+$ cd pvw/bin
+$ ./start.sh
+(2)http://localhost浏览测试如找不到连接需要重启apache服务器或检查问题（可选）
+(3)在其他主机上（如一台windows系统的主机）打开浏览器，输入
+局域网下测试：
+ http://192.168.0.120/visualizer，即可打开ParaviewWeb的网页。 
+（其他主机必须与该主机在同一局域网中）。
+“ping+域名”检验是否ping通，若通，则可通过域名直接访问
+支持谷歌浏览器和火狐浏览器

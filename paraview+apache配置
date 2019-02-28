@@ -1,0 +1,225 @@
+注：下载完paraview后首先做的事
+例子：
+将ParaView-5.5.2-Qt5-MPI-Linux-64bit/share/paraview-5.5/web/visualizer/server/pvw-visualizer.py
+pvw-visualizer.py中：self.registerVtkWebProtocol(pv_protocols.ParaViewWebColorManager(pathToColorMaps=_VisualizerServer.colorPalette, showBuiltin=_VisualizerServer.showBuiltin))
+修改为：
+self.registerVtkWebProtocol(pv_protocols.ParaViewWebColorManager(pathToColorMaps=_VisualizerServer.colorPalette))
+
+
+
+
+Ubuntu 16.06 LTS配置 apache+paraviewweb（版本5.6）   
+-----------------------------
+安装ParaViewWeb
+配置ParaViewWeb启动器
+配置Apache以提供标准的ParaViewWeb示例应用程序和文档
+使用ParaViewWeb示例应用程序构建Web站点内容
+----------------------------
+Unbuntu Desktop 添加所有缺少的库和依赖项
+$ sudo apt-get update 
+$ sudo apt-get upgrade 
+$ sudo apt-get install\
+apache2-dev apache2 libapr1-dev apache2-utils       ＃Apache   Web Server
+nvidia-current mesa-common-dev libxt-dev            ＃OpenGL        drivers
+build-essential python2.7-dev cmake-curses-gui      ＃（可选）如果你想构建ParaView
+ssh wget emacs                                      ＃（可选）有用的工具
+----------------------------
+ParaViewWeb用户创建
+$ adduser pvw-user（user用户名）
+＃将该用户添加到apache用户组
+$ usermod -a -G www-data pvw-user
+------------------------------
+设置目录结构
+$ sudo mkdir -p /data/ pvw /data/pv/ data/logs /data/ www
+目录结构：
+●/data/www  网站的html/js/css文件，这些文件将利用ParaViewWeb
+●/data/pv   ParaView安装二进制文件
+●/data/pvw  ParaView进程启动程序，它将为每个可视化会话动态触发新进程。
+●/data/logs ParaViewWeb虚拟主机提供服务的Apache日志。
+------------------------------
+ParaView安装：官网下载linux版本
+prarview目录结构：
+->paraview-xxx
+ + bin
+ + lib
+ + share
+将其复制到我们的全局目录结构
+$ sudo cp -r /.../paraview-xxx /data/pv/pv-5.6.0（更改下载对应的版本号）
+$ sudo ln -s /data/pv/pv-5.6.0 /data/pv/pv-current ＃创建软连接
+$ sudo chown  - R pvw-user /data/pv ＃更改pv文件夹的用户权限
+$ sudo chgrp -R pvw-user /data/pv  ＃变更pv文件夹所属群组为pvw-user
+------------------------------
+ParaViewWeb启动器的配置：/data/pvw目录嵌入ParaView Process Launcher及其配置
+$ sudo mkdir -p /data/pvw/bin /data/pvw/conf /data/pvw/data /data/pvw/logs
+●bin: 包含启动pvpython服务器的脚本文件 
+●conf:包含Paraview process launcher文件 
+●data: 包含从官网下载的数据文件 
+●logs: 包含访问服务器的日志文件
+-----------------------------------
+编辑配置文件：
+$ sudo vi /data/pvw/conf/launcher.json
+★★★更改：YOUR_HOST_NAME_TO_REPLACE为你实际的主机名
+★★★以下代码对应的文件夹名与上面建立要一致
+
+ {
+    "resources": [ {"port_range": [9001, 9103], "host": "localhost"} ],
+    "sessionData": {
+      "updir": "/Home"
+    },
+    "configuration": {
+      "log_dir": "/data/pvw/logs",
+      "host": "localhost",
+      "endpoint": "paraview",
+      "sessionURL": "ws://YOUR_HOST_NAME_TO_REPLACE/proxy?sessionId=${id}&path=ws",
+      "timeout": 25,
+      "upload_dir": "/data/pvw/upload",
+      "fields": ["file", "host", "port", "updir"],
+      "port": 8080,
+      "proxy_file": "/data/proxy.txt"
+    },
+    "properties": {
+      "web_path": "/data/pv/pv-current/share/paraview-5.6/web",
+      "dataDir": "/data/pvw/data",
+      "python_exec": "/data/pv/pv-current/bin/pvpython"
+    },
+    "apps": {
+      "visualizer": {
+        "cmd": [
+          "${python_exec}", 
+          "-dr", 
+          "${web_path}/visualizer/server/pvw-visualizer.py",
+          "--port", "${port}", 
+          "--data", "${dataDir}", 
+          "-f", 
+          "--authKey", "${secret}"
+        ],
+        "ready_line" : "Starting factory"
+      },
+      "lightviz": {
+        "cmd": [
+          "${python_exec}", 
+          "-dr", 
+          "${web_path}/lightviz/server/pvw-light-viz.py",
+          "--port", "${port}", 
+          "--data", "${dataDir}", 
+          "-f", 
+          "--authKey", "${secret}"
+        ],
+        "ready_line" : "Starting factory"
+      }
+    }
+  }
+--------------------------------------------- 
+★★★
+$ sudo vi /data/pvw/bin/start.sh
+(或者是：
+$ touch /data/pvw/bin/start.sh
+$ sudo gredit start.sh)
+
+5.2-5.4版本配置：
+ export DISPLAY=:0.0
+ /data/pv/pv-current/bin/pvpython /data/pv/pv-current/lib/python2.7/site-packages/vtk/web/launcher.py  /data/pvw/conf/launcher.json &
+★★★
+5.5版本之后配置：
+ export DISPLAY=:0.0
+ /data/pv/pv-current/bin/pvpython /data/pv/pv-current/lib/python2.7/site-packages/wslink/launcher.py  /data/pvw/conf/launcher.json &
+★★★
+注：
+若不想关闭控制台后服务器仍然启动，可删除上面内容结尾处的“&”。
+-------------------------------
+创建proxy.txt，该文件下不用填写内容，以后多用户访问时会自动填写内容
+每次服务器重启后，proxy.txt文件会被清空。
+$ sudo touch /data/proxy.txt 
+$ sudo chown pvw-user /data/proxy.txt 
+$ sudo chgrp www-data /data/proxy.txt 
+$ sudo chmod 660 /data/proxy.txt
+-------------------------------------------------
+添加ParaView数据作为样本数据以进行可视化
+$ wget http://paraview.org/files/v4.0/ParaViewData-v4.0.1.tar.gz 
+$ tar zxvf ParaViewData-v4.0.1.tar.gz 
+$ sudo cp -r ParaViewData-v4.0.1 /Data/* /data/pvw/data
+-------------------------------------------------
+更改pvw文件夹的用户权限
+$ sudo chown -R pvw-user / data / pvw 
+$ sudo chgrp -R pvw-user / data / 
+pvw $ sudo chmod u + x /data/pvw/bin/start.sh
+-----------------------------------------
+
+
+配置Apache
+Apache将充当我们的前端网络服务器。这意味着HTML内容和WebSocket转发都将由Apache处理
+
+------------------------
+首相需要启用ParaViewWeb虚拟主机将使用的模块
+$ sudo a2enmod vhost_alias 
+$ sudo a2enmod proxy 
+$ sudo a2enmod proxy_http 
+$ sudo a2enmod proxy_wstunnel 
+$ sudo a2enmod rewrite
+--------------------------
+然后我们创建我们的虚拟主机。
+请务必YOUR_HOST_NAME_TO_REPLACE使用您的实际主机名替换（如下例所示）。
+还包括一个真实的电子邮件地址代替' YOUR_EMAIL@COMPANY.COM`。
+$ sudo vi /etc/apache2/sites-available/001-pvw.conf
+(或者:
+$ sudo touch  /etc/apache2/sites-available/001-pvw.conf
+$ sudo gredit /etc/apache2/sites-available/001-pvw.conf
+)
+★★★:
+
+YOUR_HOST_NAME_TO_REPLACE:改为实际主机名  （参考文章修改方式为：//ServerName www.paraview-peng.com）
+YOUR_EMAIL@COMPANY.COM:改为邮件实际地址
+txt:${MAPPING-FILE-DIR}/proxy.txt:改为/data/proxy.txt
+
+<VirtualHost *:80>
+      ServerName   YOUR_HOST_NAME_TO_REPLACE
+      ServerAdmin  YOUR_EMAIL@COMPANY.COM
+      DocumentRoot /data/www
+
+      ErrorLog /data/logs/error.log
+      CustomLog /data/logs/access.log combined
+
+      <Directory /data/www>
+          Options Indexes FollowSymLinks
+          Order allow,deny
+          Allow from all
+          AllowOverride None
+          Require all granted
+      </Directory>
+
+      # Handle launcher forwarding
+      ProxyPass /paraview http://localhost:8080/paraview
+
+      # Handle WebSocket forwarding
+      RewriteEngine On
+      RewriteMap session-to-port txt:${MAPPING-FILE-DIR}/proxy.txt
+      RewriteCond %{QUERY_STRING} ^sessionId=(.*)&path=(.*)$ [NC]
+      RewriteRule ^/proxy.*$  ws://${session-to-port:%1}/%2  [P]
+ </VirtualHost>
+--------------------------------
+激活001-pvw虚拟主机，重新启动Apache
+$ sudo a2ensite 001-pvw.conf 
+$ sudo service apache2 restart
+如果您的新虚拟主机正确侦听时遇到问题，则可能需要禁用默认虚拟主机文件
+$ sudo a2dissite 000-default.conf
+--------------------------------
+
+设置ParaViewWeb网站
+★★★:只需将各种Web应用程序复制到我们的服务目录即可。
+---------------------------------
+Visualizer
+$ cd /data/pv/pv-5.6/share/paraview-5.6/web
+$ sudo cp -r visualizer/www /data/www/visualizer
+
+=> http://YOUR_HOST_NAME_TO_REPLACE/visualizer
+----------------------------------
+LightViz
+$ cd /data/pv/pv-5.6/share/paraview-5.6/web
+$ sudo cp -r lightviz/www /data/www/lightviz
+
+=> http://YOUR_HOST_NAME_TO_REPLACE/lightviz
+---------------------------------------------
+可能需要确保/ data / www目录的正确权限
+$ sudo chown -R www-data：www-data /data/www
+---------
+后续参考EC2图形设置部署	
