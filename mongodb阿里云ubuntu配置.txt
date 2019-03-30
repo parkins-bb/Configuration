@@ -1,0 +1,45 @@
+常见错误解决办法：https://www.jb51.net/article/109091.htm
+
+1.下载mongodb
+curl -O  https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-4.0.2.tgz
+2.解压
+tar zxvf mongodb-linux-x86_64-4.0.2.tgz
+3.移动重命名
+mv mongodb-linux-x86_64-4.0.2.tgz /usr/local/MongoDB
+4.创建数据文件夹和日志文件等
+mkdir -p  /usr/local/mongodb/data
+touch /usr/local/mongodb/mongod.log
+touch /usr/local/mongodb/mongodb.conf
+5.编辑配置文件
+vim /usr/local/mongodb/mongodb.conf
+配置文件如下：
+dbpath=/usr/local/mongodb/data
+logpath=/usr/local/mongodb/mongod.log
+logappend = true 
+port = 27017
+bind_ip=0.0.0.0 
+fork = true 
+auth = true
+
+6.MongoDB 的可执行文件位于 bin 目录下，所以可以将其添加到 PATH 路径中：
+vi /etc/profile
+在末尾添加：export PATH=<mongodb-install-directory>/bin:$PATH
+<mongodb-install-directory> MongoDB 的安装路径。如本文的 /usr/local/MongoDB 。
+7.启动
+进入mongo的bin目录下执行
+cd /usr/local/MongoDB/bin
+（任选其一）
+第一种方式：
+配置文件启动：
+./mongod --config /usr/local/mongodb/mongodb.conf
+第二种方式：
+参数启动：
+./mongod --dbpath=/usr/local/mongodb/data --logpath=/usr/local/mongodb/mongod.log --logappend  --port=27017 --fork
+
+8.创建用户(创建完成后需要在阿里云控制台配置防火墙才能连接)
+db.createUser({'user':"用户名","pwd":"密码",roles:[{'role':"角色权限（dbAdmin）",db:"admin"}]})
+
+外网访问：
+阿里云控制台开放27017端口
+关闭防火墙：ufw disable
+
