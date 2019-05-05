@@ -1,0 +1,131 @@
+----------------------------------------------
+●ubuntu修改主机名 vi /etc/hostname  ，然后修改后reboot重启生效
+
+●ubuntu : 注 千万不要将 vi /etc/hosts 中 127.0.0.1  localhost 改变为 127.0.0.1   node1
+修改 vi /etc/hosts 
+ 127.0.0.1       localhost
+ 39.106.12.75 node1
+ 39.106.66.158 node2
+●配置所有端口可访问 在安全组中放行所有端口
+
+●阿里云服务器的NFS端口为2409，需要在阿里云后台防火墙放行此端口
+
+●不要使用轻量级服务器ubuntu
+
+-----------------------------------------------
+一、SSH免密登录（以两台阿里云ECS:Ubuntu为例）
+前提：公网能够ping通，防火墙关闭，端口22开放
+1.网络环境配置（网络搭建和ip地址设置)
+两台云服务器公网IP：
+  node1:47.94.153.202 //将此看为主节点
+  node2:39.106.125.126
+分别配置两台机器的hosts文件:
+ sudo vim/etc/hosts 均添加一下内容
+  47.94.153.202 node1
+  39.106.125.126 node2
+(此时，两个节点应该是ping通的,在node1服务器上->ping node2 ，在node2服务器上ping-> node1)
+2.SSH免密登录
+●ubuntu : 注 千万不要将 vi /etc/hosts 中 127.0.0.1  localhost 改变为 127.0.0.1   node1
+修改 vi /etc/hosts 
+127.0.0.1       localhost
+39.106.12.75 node1
+39.106.66.158 node2
+●配置所有端口可访问 在安全组中放行所有端口
+  
+
+（1）在每个节点安装SSH服务（远程登录服务）：sudo apt-get install ssh |centos：yum install openssh-server
+（2）各节点生成私钥和公钥 
+ssh-keygen -t rsa // 生成的钥匙文件在 ~/.ssh/下，其他linux版本如CentOS路径会有所不同 
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys //认证（执行该步后可以保证本机免密登录，使用ssh node1进行测试）
+（3）把各子节点的 id_rsa.pub 传到主节点 
+ 第一步：cd .ssh
+ 第二步：scp id_rsa.pub root@node1:~/.ssh/id_rsa.pub.node2（这里我们把node1看作主节点，将node2节点的钥匙文件传到node1上） 
+（4）在主节点上操作-node1 
+ cat ~/.ssh/id_rsa.pub.node2 >> ~/.ssh/authorized_keys//认证 
+ 首先：cd .ssh(保证进入.ssh文件夹)
+ 其次：scp authorized_keys root@node2:~/.ssh/authorized_keys//将认证文件传回每个子节点 
+（5）验证无密码登录
+ 在node1节点上执行：ssh node2 
+------------------------------------------------------
+二、安装MPICH
+ubuntu:阿里云
+  轻量级Ubuntu不可以
+  ECS：Ubuntu没测试
+为避免错误，在安装MPICH之前，分别执行以下命令：sudo apt-get update（保证安装的源最新）、sudo apt-get install gcc（安装gcc编译器，用于编译C语言）、sudo apt-get install g++（安装g++编译器，用于编译C++）、sudo apt-get install gfortran（安装gfortran编译器，用于编译fortran语言）。
+（1）官网下载mpich-3.3（stable release）
+（2）解压tar -zxvf mpich-3.3.tar.gz
+（3）进入解压文件 cd mpich-3.3
+创建mpi的安装路径，使用/home/mpich-install文件夹来存放安装文件
+（4）配置：./configure 2>&1 | tee c.txt (./configure --prefix=/home/mpich-install 2>&1 | tee c.txt 指定路径不建议)
+（5）编译：sudo make 2>&1 | tee m.txt（如果构建出错重新构建 1.make clean 2.make V=1 2>&1 | tee m.txt）
+（6）安装：make install |& tee mi.txt 
+（7）加入环境变量 /cd ~/ vi ~/.bashrc/ export PATH=/home/mpich-install/bin:$PATH
+ (8)使环境变量生效 source ~/.bashrc
+（9）用which mpicc和which mpiexec检查安装是否成功，如果有这两个可执行程序的路径显示，则表示安装成功。
+
+注意：如果自行选择安装路径的话，记得设置环境变量，具体README文档中有详细说明。这里注意一个问题，如果设置环境变量的话，~/.bashrc配置文件下的环境变量和切换sudo执行时的环境变量不同，sudo执行时会找不到命令。关于配置文件的介绍，可以参考下面文章：linux环境变量配置文件区别。
+
+ 
+在每个节点中安装MPICH，方法同上。建议每个节点中安装路径相同，统一命名（虽然安在不同的位置也可以，只要保证找到执行命令即可，但为了后期开发方便以及赏心悦目的原则，我们还是专业一点好）。
+
+centos:
+条件：
+ yum update
+ yum -y install gcc
+ yum -y install gcc-c++
+ tar -zxvf mpich-3.3.tar.gz
+ cd mpich-3.3
+ ./configure --prefix=/usr/local/mpich --disable-fortran
+ make
+ make install 
+ vi /etc/profile
+ export PATH=/usr/local/mpich/bin:$PATH
+ export MANPATH=/usr/local/mpich/man:$MANPATH
+ source /etc/profile
+ 
+ 测试：
+ which mpicc 
+ cp -r examples/ /usr/local/mpich
+ mpiexec -n 2 /usr/local/mpich/examples/cpi
+
+----------------------------------------------------------
+三、建立和挂载NFS共享目录
+  前面几步我们安装了MPICH和实现了SSH免密登录，如果要执行程序的话，需要保证每个节点的相同目录中都生成可执行文件，该操作方式比较繁琐，为解决该问题，我们可以采用建立共享目录的方案。
+
+重要注：阿里云服务器的NFS端口为2409，需要在阿里云后台防火墙放行此端口。
+
+（1）在所有节点中建立相同路径下的相同目录：mkdir /home/mpi_share。（不相同也可以）
+（2）安装NFS：
+    Ubuntu
+    sudo apt-get install nfs-kernel-server
+    sudo apt-get install rpcbind
+    安装NFS:Centos
+    yum -y install nfs-utils rpcbind
+（3）设置NFS服务器 选取一个节点node1设置NFS服务器，即编写程序的云服务器，当在此台云服务器的共享目录编写程序并编译后会将共享目录中的所有文件同步到其它云服务器中（NFS客户端）
+  sudo vi /etc/exports
+  打开文件后，在文件的最后附件上所有同步的客户端的虚拟机的ip和权限，如下：
+  /home/mpi_share 47.94.153.202(rw,sync,no_root_squash,no_subtree_check) 
+
+  /home/mpi_share 39.106.125.126(rw,sync,no_root_squash,no_subtree_check)
+  /home/mpi_share 39.96.42.114(rw,sync,no_root_squash,no_subtree_check)
+ 注其中/home/mpi_share是共享目录，ip地址是所有的客户端（其它节点）的地址，包括本机的，后面括号中的是权限，具体含义可上网查阅（rw即读写权限）
+（4）重启NFS 
+   Ubuntu
+    sudo /etc/init.d/nfs-kernel-server restart 
+    sudo /etc/init.d/rpcbind restart
+    此时，NFS服务器虚拟机配置完毕。
+    centos:
+    service rpcbind restart  
+    service nfs restart
+（5）接下来需要配置其它NFS客户端虚拟机，使其能共享NFS服务器的共享目录：在其他节点中运行sudo mount -t nfs 47.94.153.202:/home/mpi_share /home/mpi_share，其中ip为NFS服务器的地址，后面跟的是服务器的共享目录，再后面跟的是本机（客户端）的共享同步目录。此时，所有的共享目录便配置完毕了（每次节点启动时都需重新执行挂载命令，如果想开机自动挂载：把上述指令sudo mount -t nfs 47.94.153.202:/home/mpi_share /home/mpi_share 写到 /etc/rc.local 文件中）。
+（6） 测试：在NFS服务器端的共享目录建立一个文件touch 123.txt ，vi 123.txt 写入内容并保存，几秒钟后检查其他节点中是否在共享目录中产生了该文件，若产生则配置成功。 
+
+
+注：建立和挂载NFS共享目录的目的是保证主节点生成的可执行文件和需要的数据其他节点可以访问，这样就可以保证多个节点之间的并行（如果不执行这一步的话，需要将执行文件和需要的数据复制到每个节点的相同位置）。
+---------------------------------------------
+linux环境变量的配置：
+https://www.cnblogs.com/xiehongfeng100/p/4969477.html
+—————————————————————————————————————————————
+
+    
+    
