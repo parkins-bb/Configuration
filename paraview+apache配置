@@ -30,7 +30,7 @@ $ adduser pvw-user（user用户名）
 $ usermod -a -G www-data pvw-user
 ------------------------------
 设置目录结构
-$ sudo mkdir -p /data/ pvw /data/pv/ data/logs /data/ www
+$ sudo mkdir -p /data/pvw /data/pv/ data/logs /data/www
 目录结构：
 ●/data/www  网站的html/js/css文件，这些文件将利用ParaViewWeb
 ●/data/pv   ParaView安装二进制文件
@@ -46,7 +46,7 @@ prarview目录结构：
 将其复制到我们的全局目录结构
 $ sudo cp -r /.../paraview-xxx /data/pv/pv-5.6.0（更改下载对应的版本号）
 $ sudo ln -s /data/pv/pv-5.6.0 /data/pv/pv-current ＃创建软连接
-$ sudo chown  - R pvw-user /data/pv ＃更改pv文件夹的用户权限
+$ sudo chown  -R pvw-user /data/pv ＃更改pv文件夹的用户权限
 $ sudo chgrp -R pvw-user /data/pv  ＃变更pv文件夹所属群组为pvw-user
 ------------------------------
 ParaViewWeb启动器的配置：/data/pvw目录嵌入ParaView Process Launcher及其配置
@@ -70,7 +70,7 @@ $ sudo vi /data/pvw/conf/launcher.json
       "log_dir": "/data/pvw/logs",
       "host": "localhost",
       "endpoint": "paraview",
-      "sessionURL": "ws://YOUR_HOST_NAME_TO_REPLACE/proxy?sessionId=${id}&path=ws",
+      "sessionURL": "ws://YOUR_HOST_NAME_TO_REPLACE/proxy?sessionId=${id}&path=ws", //(注:YOUR_HOST_NAME_TO_REPLACE改为公网地址可远端访问)
       "timeout": 25,
       "upload_dir": "/data/pvw/upload",
       "fields": ["file", "host", "port", "updir"],
@@ -114,7 +114,7 @@ $ sudo vi /data/pvw/conf/launcher.json
 $ sudo vi /data/pvw/bin/start.sh
 (或者是：
 $ touch /data/pvw/bin/start.sh
-$ sudo gredit start.sh)
+$ sudo gedit start.sh)
 
 5.2-5.4版本配置：
  export DISPLAY=:0.0
@@ -163,7 +163,7 @@ $ sudo a2enmod rewrite
 $ sudo vi /etc/apache2/sites-available/001-pvw.conf
 (或者:
 $ sudo touch  /etc/apache2/sites-available/001-pvw.conf
-$ sudo gredit /etc/apache2/sites-available/001-pvw.conf
+$ sudo gedit  /etc/apache2/sites-available/001-pvw.conf
 )
 ★★★:
 
@@ -172,7 +172,7 @@ YOUR_EMAIL@COMPANY.COM:改为邮件实际地址
 txt:${MAPPING-FILE-DIR}/proxy.txt:改为/data/proxy.txt
 
 <VirtualHost *:80>
-      ServerName   YOUR_HOST_NAME_TO_REPLACE
+      ServerName   YOUR_HOST_NAME_TO_REPLACE  // localhost / chn003主机名 / (196.168.1.86 公网地址 这里不需要改公网地址实现远端访问）
       ServerAdmin  YOUR_EMAIL@COMPANY.COM
       DocumentRoot /data/www
 
