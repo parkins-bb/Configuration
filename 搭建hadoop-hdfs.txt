@@ -1,0 +1,107 @@
+https://www.jianshu.com/p/58b39974abb7 教程
+https://www.cnblogs.com/yinzhengjie/articles/11063804.html 常见配置
+
+/etc/hosts:
+47.93.223.159 master
+47.93.190.182 slave1
+47.94.169.129 slave2
+39.105.37.10  slave3
+
+查看端口开放 : netstat -ant
+
+★★★首先搭建ssh免密登录
+
+linux：master与slaves配置相同：
+-------------------------------------------
+安装配置jdk 
+$ javac 获取下载源
+$ apt-get install openjdk-8-jdk
+此时看到java的安装路径：/usr/lib/jvm/java-8-openjdk-amd64/
+配置环境变量：vi /etc/profile
+expor8-openjdk-amd64/
+export JRE_HOME=$JAVA_HOME/jre
+export CLASSPATH=$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH
+export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH
+使环境变量生效：source /etc/profile
+------------------------------------------
+安装配置hadoop
+$ wget http://mirror.bit.edu.cn/apache/hadoop/common/hadoop-2.7.7/hadoop-2.7.7.tar.gz
+$ mv hadoop-2.7.7.tar.gz /opt/
+$ cd /opt
+$ tar -zxvf hadoop-2.7.7.tar.gz
+
+配置hadoop-env.sh:
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
+
+配置：vi /etc/profile
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
+export JRE_HOME=$JAVA_HOME/jre
+export HADOOP_HOME=/opt/hadoop-2.7.7
+export CLASSPATH=$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH
+export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
+生效：source /etc/profile
+
+配置core-site.xml:
+mkdir -p /opt/hadoop-2.7.7/data/tmpData
+$ cd /opt/hadoop-2.7.7/etc/hadoop
+$ vi core-site.xml
+★★★注意：master上阿里云这里需要配置为内网IP
+<configuration>
+ <property>
+  <name>fs.defaultFS</name>
+  <value>hdfs://172.24.60.11:9000</value>
+ </property>
+ <property>
+  <name>hadoop.tmp.dir</name>
+  <value>/opt/hadoop</value>
+ </property>
+ <property>
+   <name>dfs.name.dir</name>
+   <value>/opt/hadoop/name</value>
+ </property>
+</configuration>
+
+修改hdfs-site.xml
+
+<configuration>
+ <property>
+   <name>dfs.data.dir</name>
+   <value>/opt/hadoop/data</value>
+ </property>
+ <property>
+   <name>dfs.replication</name>
+   <value>2</value>
+ </property>
+</configuration>
+
+
+配置slaves 在NameNode上配置即master:
+$ vim slaves
+  slave1
+  slave2
+  slave3
+
+slaves上配置相同
+slaves上的变化，将 core-site.xml中
+ <property>
+  <name>fs.defaultFS</name>
+  <value>hdfs://master:9000</value>
+ </property>
+---------------------------
+格式化NameNode、启动HDFS系统：
+格式化：
+$ hdfs namenode -format
+启动：
+$ start-dfs.sh
+验证启动是否成功：
+http://192.168.56.101:50070/
+
+★★★注意：
+配置失败重新配置后，需要格式化操作：
+删除logs下面的日志文件
+删除 data/tmpData/dfs/下 name 和 data文件下的内容
+hdfs namenode -format
+start-dfs.sh
+
+
+
