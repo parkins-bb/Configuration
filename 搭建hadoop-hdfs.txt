@@ -18,7 +18,7 @@ $ javac 获取下载源
 $ apt-get install openjdk-8-jdk
 此时看到java的安装路径：/usr/lib/jvm/java-8-openjdk-amd64/
 配置环境变量：vi /etc/profile
-expor8-openjdk-amd64/
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 export JRE_HOME=$JAVA_HOME/jre
 export CLASSPATH=$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH
 export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH
