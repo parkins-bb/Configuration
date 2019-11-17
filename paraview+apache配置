@@ -30,7 +30,7 @@ $ adduser pvw-user（user用户名）
 $ usermod -a -G www-data pvw-user
 ------------------------------
 设置目录结构
-$ sudo mkdir -p /data/pvw /data/pv/ data/logs /data/www
+$ sudo mkdir -p /data/pvw /data/pv /data/logs /data/www
 目录结构：
 ●/data/www  网站的html/js/css文件，这些文件将利用ParaViewWeb
 ●/data/pv   ParaView安装二进制文件
