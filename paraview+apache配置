@@ -140,9 +140,9 @@ $ tar zxvf ParaViewData-v4.0.1.tar.gz
 $ sudo cp -r ParaViewData-v4.0.1 /Data/* /data/pvw/data
 -------------------------------------------------
 更改pvw文件夹的用户权限
-$ sudo chown -R pvw-user / data / pvw 
-$ sudo chgrp -R pvw-user / data / 
-pvw $ sudo chmod u + x /data/pvw/bin/start.sh
+$ sudo chown -R pvw-user /data/pvw  
+$ sudo chgrp -R pvw-user /data/pvw   
+$ sudo chmod u+x /data/pvw/bin/start.sh
 -----------------------------------------
 
 
