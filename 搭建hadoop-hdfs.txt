@@ -98,7 +98,7 @@ http://192.168.56.101:50070/
 
 ★★★注意：
 配置失败重新配置后，需要格式化操作：
-删除logs下面的日志文件
+删除logs下面的日志文件 cd /opt/hadoop-2.7.7/logs  rm -rf *  
 删除 data/tmpData/dfs/下 name 和 data文件下的内容
 hdfs namenode -format
 start-dfs.sh
