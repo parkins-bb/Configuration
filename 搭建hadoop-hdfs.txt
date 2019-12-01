@@ -98,6 +98,11 @@ http://192.168.56.101:50070/
 
 ★★★注意：
 配置失败重新配置后，需要格式化操作：
+配置过程中将/etc/hosts下的本机ip改为内网其他公网  
+47.94.95.35 master  改为 172.24.60.28 master  
+39.105.37.10 slave1  
+47.93.36.9 slave2  
+182.92.189.62 slave3  
 删除logs下面的日志文件 cd /opt/hadoop-2.7.7/logs  rm -rf *  
 删除 data/tmpData/dfs/下 name 和 data文件下的内容
 hdfs namenode -format
