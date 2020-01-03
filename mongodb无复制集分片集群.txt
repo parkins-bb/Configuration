@@ -1,0 +1,127 @@
+配置参考文档：https://blog.csdn.net/kevinmcy/article/details/82712074
+
+注意：
+  MongoDB3.4开始,必须将配置服务器部署为副本集（CSRS）。
+停止mongod服务：
+  ps aux|grep mongod      
+  kill -9 pid
+4台阿里云Ubuntu16.04服务器node1 node2 node3 node4
+
+1.下载安装二进制版本mongodb4.0.2
+
+2.设置环境变量:
+vi/etc/profile
+   export MONGODB_HOME=/opt/mongodb
+   export PATH=$MONGODB_HOME/bin:$PATH
+srouce /etc/profile
+
+3.创建路由、配置、分片等的相关目录与文件
+共同设置：
+启动配置文件存放的文件夹：mkdir -p /opt/mongodb/conf
+配置服务数据存放目录：mkdir -p /opt/mongodb/data/config
+配置服务日志存放文件：mkdir -p /opt/mongodb/log/config.log
+node1:
+路由服务日志存放文件：mkdir -p /opt/mongodb/log/mongos.log
+分片1服务数据存放目录：mkdir -p /opt/mongodb/data/shard1
+分片1服务日志存放文件：mkdir -p /opt/mongodb/log/shard1.log
+node2:
+分片2服务数据存放目录：mkdir -p /opt/mongodb/data/shard2
+分片2服务日志存放文件：mkdir -p /opt/mongodb/log/shard2.log
+node3:
+分片3服务数据存放目录：mkdir -p /opt/mongodb/data/shard3
+分片3服务日志存放文件：mkdir -p /opt/mongodb/log/shard3.log
+node4:
+分片4服务数据存放目录：mkdir -p /opt/mongodb/data/shard4
+分片4服务日志存放文件：mkdir -p /opt/mongodb/log/shard4.log
+
+4.配置服务器部署(4台服务器执行相同操作)
+4.1 在/home/mongodb/conf目录创建config.conf:
+dbpath=/opt/mongodb/data/config
+logpath=/opt/mongodb/log/config.log
+port=27018
+logappend=true
+fork=true
+maxConns=5000
+#复制集名称
+replSet=configs
+#置参数为true
+configsvr=true
+#允许任意机器连接
+bind_ip=0.0.0.0
+4.2 配置复制集
+分别启动三台服务器的配置服务： 
+  mongod -f /opt/mongodb/conf/config.conf
+连接mongo,只需在任意一台机器执行即可：
+切换数据库：
+  use admin
+初始化复制集：
+rs.initiate({_id:"configs",members:[{_id:0,host:"47.94.95.35:27018"},{_id:1,host:"39.105.37.10:27018"}{_id:2,host:"47.93.36.9:27018"},{_id:3,host:"182.92.189.62:27018"}]}
+其中_id:"configs"的configs是上面config.conf配置文件里的复制集名称，把三台服务器的配置服务组成复制集。
+查看状态：
+rs.status()
+5.分片服务部署(4台服务器执行相同操作)
+5.1
+在node1/home/mongodb/conf目录创建shard1.conf同理node2下shard2.conf、node3下shard3.conf、node4下shard4.conf
+dbpath=/home/mongodb/data/shard1 #后三台换为shard2,3,4
+logpath=/home/mongodb/log/shard1.log #后三台换为shard2,3,4.log
+port=27001 
+logappend=true
+fork=true
+maxConns=5000
+storageEngine=mmapv1
+shardsvr=true
+replSet=shard1#后三台换为shard2,3,4
+bind_ip=0.0.0.0
+
+各个机器下分别启动：mongod -f /home/mongodb/conf/shard{1/2/3/4}.conf
+5.2将分片配置为复制集
+各机器分别连接mongo分别初始化化
+rs.initiate({_id:"shard1",members:[{_id:0,host:"47.94.95.35:27001"}]})
+rs.initiate({_id:"shard2",members:[{_id:0,host:"39.105.37.10:27001"}]})
+rs.initiate({_id:"shard3",members:[{_id:0,host:"47.93.36.9:27001"}]})
+rs.initiate({_id:"shard4",members:[{_id:0,host:"182.92.189.62:27001"}]})
+6.路由服务部署：node1部署（可多台全部署）
+6.1在/opt/mongodb/conf目录创建mongos.conf，内容如下：
+logpath=/opt/mongodb/log/mongos.log
+logappend = true
+port = 27017
+fork = true
+configdb = configs/47.94.95.35:27018,39.105.37.10:27018,47.93.36.9:27018,182.92.189.62:27018
+maxConns=20000
+bind_ip=0.0.0.0
+6.2启动mongos
+mongos -f /opt/mongodb/conf/mongos.conf
+7.启动分片功能
+
+连接mongo
+mongo --host 47.94.95.35 --port 27017
+切换数据库：
+use admin:
+添加分片，只需在一台机器执行即可： 
+sh.addShard("shard1/47.94.95.35:27001")
+sh.addShard("shard2/39.105.37.10:27001")
+sh.addShard("shard3/47.93.36.9:27001")
+sh.addShard("shard4/182.92.189.62:27001")
+查看集群状态：
+sh.status()
+
+
+补充：
+设置分片chunk大小 
+use config
+db.setting.save({"_id":"chunksize","value":1}) # 设置块大小为1M是方便实验，不然需要插入海量数
+
+启用数据库分片
+sh.enableSharding("数据库名")
+创建片键
+db.runCmmand('shardcollection', 'test.data', key = {id:1})
+创建索引，对表进行分片        
+db.user.createIndex({"id":1}) # 以"id"作为索引
+sh.shardCollection(数据库.集合",{"id":1}) # 根据"id"对集合表进行分片
+sh.status() # 查看分片情
+
+
+
+
+
+
