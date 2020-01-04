@@ -2,6 +2,7 @@
 
 注意：
   MongoDB3.4开始,必须将配置服务器部署为副本集（CSRS）。
+  MongoDB 3.6以后，每个分片都必须是副本集！
 停止mongod服务：
   ps aux|grep mongod      
   kill -9 pid
