@@ -16,14 +16,15 @@ In [1]: from notebook.auth import passwd; passwd()
 $ jupyter notebook --generate-config
 会出现：writing default config to:/home/yang/.jupyter/jupyter_notebook_config.py
 4.编辑配置文件
-vim ~/.jupyter/jupyter_notebook_config.py 
+vim ~/.jupyter/jupyter_notebook_config.py   
 
-c.NotebookApp.ip = '*' #允许所有ip访问
+c.NotebookApp.allow_root = Ture  
+c.NotebookApp.allow_remote_access = True    
+c.NotebookApp.default_url = '/lab'  
+c.NotebookApp.ip = '*' #允许所有ip访问  
+c.NotebookApp.open_browser = False # 是否打开浏览器  
 c.NotebookApp.password = u'sha1:d0270e88f33b:212384922803ca9bd49d1fb6c11ab42651ccb358'#刚才复制的那个密文
 c.NotebookApp.port = 8889#(访问jupyter的端口)
-c.NotebookApp.open_browser = False # 是否打开浏览器
-c.NotebookApp.allow_root = Ture
-c.NotebookApp.allow_remote_access = True
 
 5.服务器有一个安全组规则，记得更改，就是防火墙的进出端口
 登录阿里云服务器找到安全组规则  添加自定义TCP 端口：8889 授权对象 0.0.0.0/0
