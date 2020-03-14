@@ -1,18 +1,18 @@
-³£¼û´íÎó½â¾ö°ì·¨£ºhttps://www.jb51.net/article/109091.htm
+å¸¸è§é”™è¯¯è§£å†³åŠæ³•ï¼šhttps://www.jb51.net/article/109091.htm
 
-1.ÏÂÔØmongodb
+1.ä¸‹è½½mongodb
 curl -O  https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-4.0.2.tgz
-2.½âÑ¹
+2.è§£å‹
 tar zxvf mongodb-linux-x86_64-4.0.2.tgz
-3.ÒÆ¶¯ÖØÃüÃû
+3.ç§»åŠ¨é‡å‘½å
 mv mongodb-linux-x86_64-4.0.2.tgz /usr/local/MongoDB
-4.´´½¨Êı¾İÎÄ¼ş¼ĞºÍÈÕÖ¾ÎÄ¼şµÈ
+4.åˆ›å»ºæ•°æ®æ–‡ä»¶å¤¹å’Œæ—¥å¿—æ–‡ä»¶ç­‰
 mkdir -p  /usr/local/mongodb/data
 touch /usr/local/mongodb/mongod.log
 touch /usr/local/mongodb/mongodb.conf
-5.±à¼­ÅäÖÃÎÄ¼ş
+5.ç¼–è¾‘é…ç½®æ–‡ä»¶
 vim /usr/local/mongodb/mongodb.conf
-ÅäÖÃÎÄ¼şÈçÏÂ£º
+é…ç½®æ–‡ä»¶å¦‚ä¸‹ï¼š
 dbpath=/usr/local/mongodb/data
 logpath=/usr/local/mongodb/mongod.log
 logappend = true 
@@ -21,25 +21,29 @@ bind_ip=0.0.0.0
 fork = true 
 auth = true
 
-6.MongoDB µÄ¿ÉÖ´ĞĞÎÄ¼şÎ»ÓÚ bin Ä¿Â¼ÏÂ£¬ËùÒÔ¿ÉÒÔ½«ÆäÌí¼Óµ½ PATH Â·¾¶ÖĞ£º
+6.MongoDB çš„å¯æ‰§è¡Œæ–‡ä»¶ä½äº bin ç›®å½•ä¸‹ï¼Œæ‰€ä»¥å¯ä»¥å°†å…¶æ·»åŠ åˆ° PATH è·¯å¾„ä¸­ï¼š
 vi /etc/profile
-ÔÚÄ©Î²Ìí¼Ó£ºexport PATH=<mongodb-install-directory>/bin:$PATH
-<mongodb-install-directory> MongoDB µÄ°²×°Â·¾¶¡£Èç±¾ÎÄµÄ /usr/local/MongoDB ¡£
-7.Æô¶¯
-½øÈëmongoµÄbinÄ¿Â¼ÏÂÖ´ĞĞ
+åœ¨æœ«å°¾æ·»åŠ ï¼šexport PATH=<mongodb-install-directory>/bin:$PATH
+<mongodb-install-directory> MongoDB çš„å®‰è£…è·¯å¾„ã€‚å¦‚æœ¬æ–‡çš„ /usr/local/MongoDB ã€‚
+7.å¯åŠ¨
+è¿›å…¥mongoçš„binç›®å½•ä¸‹æ‰§è¡Œ
 cd /usr/local/MongoDB/bin
-£¨ÈÎÑ¡ÆäÒ»£©
-µÚÒ»ÖÖ·½Ê½£º
-ÅäÖÃÎÄ¼şÆô¶¯£º
+ï¼ˆä»»é€‰å…¶ä¸€ï¼‰
+ç¬¬ä¸€ç§æ–¹å¼ï¼š
+é…ç½®æ–‡ä»¶å¯åŠ¨ï¼š
 ./mongod --config /usr/local/mongodb/mongodb.conf
-µÚ¶şÖÖ·½Ê½£º
-²ÎÊıÆô¶¯£º
+ç¬¬äºŒç§æ–¹å¼ï¼š
+å‚æ•°å¯åŠ¨ï¼š
 ./mongod --dbpath=/usr/local/mongodb/data --logpath=/usr/local/mongodb/mongod.log --logappend  --port=27017 --fork
 
-8.´´½¨ÓÃ»§(´´½¨Íê³ÉºóĞèÒªÔÚ°¢ÀïÔÆ¿ØÖÆÌ¨ÅäÖÃ·À»ğÇ½²ÅÄÜÁ¬½Ó)
-db.createUser({'user':"ÓÃ»§Ãû","pwd":"ÃÜÂë",roles:[{'role':"½ÇÉ«È¨ÏŞ£¨dbAdmin£©",db:"admin"}]})
+8.åˆ›å»ºç”¨æˆ·(åˆ›å»ºå®Œæˆåéœ€è¦åœ¨é˜¿é‡Œäº‘æ§åˆ¶å°é…ç½®é˜²ç«å¢™æ‰èƒ½è¿æ¥)
+db.createUser({'user':"ç”¨æˆ·å","pwd":"å¯†ç ",roles:[{'role':"è§’è‰²æƒé™ï¼ˆdbAdminï¼‰",db:"admin"}]})
 
-ÍâÍø·ÃÎÊ£º
-°¢ÀïÔÆ¿ØÖÆÌ¨¿ª·Å27017¶Ë¿Ú
-¹Ø±Õ·À»ğÇ½£ºufw disable
-
+å¤–ç½‘è®¿é—®ï¼š
+é˜¿é‡Œäº‘æ§åˆ¶å°å¼€æ”¾27017ç«¯å£
+å…³é—­é˜²ç«å¢™ï¼šufw disable  
+å¯åŠ¨é”™è¯¯ï¼š  
+./mongod: error while loading shared libraries: libcurl.so.4: cannot open shared object file: No such file or directory  
+è§£å†³ï¼šapt-get install libcurl4-openssl-dev    
+./mongod: error while loading shared libraries: libnetsnmpmibs.so.30: cannot open shared object file: No such file or directory  
+è§£å†³ï¼šapt-get install snmpd snmp snmp-mibs-downloader  
