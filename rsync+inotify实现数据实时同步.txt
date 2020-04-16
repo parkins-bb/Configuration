@@ -1,0 +1,128 @@
+Ubuntu配置rsync+inotify实现数据实时同步
+
+39.106.184.174（服务器）
+47.95.119.89（客户端）同步服务器的数据
+
+准备两个软件包：
+阿里云镜像
+rsync_3.1.2-2.1ubuntu1_amd64.deb
+xinetd_2.3.15.3-1_amd64.deb
+1.安装依赖包和rsync
+  dpkg -i xinetd_2.3.15.3-1_amd64.deb
+  dpkg -i rsync_3.1.2-2.1ubuntu1_amd64.deb
+ 查看rsync版本
+ rsync --version
+2.
+ vim /etc/xinetd.d/rsync
+ service rsync
+ {
+	disable = no 
+	flags =IPv6
+	socket_type = stream
+	wait = no
+	user = root 
+	server = /usr/bin/rsync
+	server_args = --daemon
+	log_on_failure += USERID
+ }
+重启服务：systemctl restart xinetd
+查询端口：netstat -antup | grep 873
+注：ECS开放端口873
+
+  使用rsync备份数据
+  对于39.106.184.174（服务器）目录/root/hdfdata/备份到47.95.119.89（客户端）/root/hdfdata下
+ （可以创建测试用户）对目录赋予读写权限/root/hdfdata/ 本文使用root用户，
+  客户端同步数据:客户端执行
+  rsync -avzP  --delete root@39.106.184.174:/root/hdfdata /root/hdfdata
+
+实现无交互数据备份
+ 在/root 目录下
+ ssh-keygen //生成秘钥
+ ssh-copy-id root@39.106.184.174 //公钥复制给服务器
+ rsync -avzP  --delete root@39.106.184.174:/root/hdfdata /root/hdfdata //实现免密码登录
+（编写脚本实现自动备份）
+
+使用配置文件备份数据，最后把rsync以deamon方式运行
+ 用配置文件定义目录输出
+ vim /etc/rsyncd.conf //文件不存在需要自己创建
+ 
+ uid = root #运行进程的身份 rsync使用的用户，默认nobody
+ gid = root #运行进程的组  rsync使用的组，默认nobody
+ address = 39.106.184.174 #监听ip
+ hosts allow = 47.95.119.89 #允许同步客户端的IP地址，可以是网段，或用*表示所有
+ use chroot = yes #是否限定在该目录下，锁定家目录rsync被黑之后，黑客无法在运行的家目录之外创建文件
+ max connections = 5 #最大连接数
+ pid file = /var/run/rsyncd.pid #进程pid自动生成，pid的位置
+ lock file = /var/run/rsync.lock #指定lock文件用来支持“max connections ”参数使总连接不会超过限制
+ log file = /var/log/rsyncd.log #日志文件路径
+ motd file = /etc/rsyncd.motd #客户端登录之后弹出的消息，需要创建
+ [hdfroot] #共享模块的名称，自己起名
+ path = /root/hdfdata #共享路径 /root/hdfdata/共享文件夹下的文件
+ comment = used for hdf-data root #描述
+ read only = yes #只读方式（只可以下载）， 指定客户端是否可以上传文件
+ list = yes  #是否允许客户端可以查看可用模块列表，默认为可以
+ auth users = root #指定以空格或逗号分隔的用户可以使用哪些模块，用户不需要在本地系统中存在。默认为所有用户无密码访问
+ secrets file = /etc/rsync.passwd #指定用户名和密码文件 格式：用户名:密码 密码不超过8位 权限600
+ 
+ 创建提示文件和用户密码
+ echo "Welcome to Backup Server" >/etc/rsyncd.motd
+ vim /etc/rsync.passwd 用户名和密码 
+ root:Luwei003
+ chmod 600 /etc/rsync.passwd 目录权限必须是600 或700否则身份验证失效
+ 
+ 启动服务测试
+ vim /etc/xinetd.d/rsync 
+ disable = no 将原来的yes改为no(部分版本是no不用改)
+ /etc/init.d/xinetd restart //启动服务systemctl restart xinetd
+ rsync --daemon --config=/etc/rsyncd.conf
+ netstat -antip|grep :873
+ 客户端测试：
+ rsync -azP root@39.106.184.174::hdfroot /root/hdfdata/
+ 提示：Welcome to BackupServer Password:
+ 
+ (可以脚本实现定时备份)
+
+Rsync+inotify实时同步
+下载inotify-tools-3.13.tar.gz
+把39.106.184.174（服务器）目录/root/hdfdata/实时同步到47.95.119.89（客户端）/root/hdfdata下
+ls /proc/sys/fs/inotify/ //查看调控参数
+max_queued_events  #表示监控时间队列 默认16384可以使用cat查看
+max_user_instances #表示最多监控实例数 默认128
+max_user_watches   #表示每个实例最多监控文件数 默认8192
+需要加大三个数值  
+ vim /etc/sysctl.conf
+ 末尾加入：
+ max_queued_events = 32768 
+ max_user_instances = 1024
+ max_user_watches = 90000000
+
+ sysctl -p #查看
+ 随便查看一个是否成功
+ cat /proc/sys/fs/inotify/max_user_watches
+ 使用触发式同步脚本
+ 首先做好免密码链接
+ ssh-keygen
+ ssh-copy-id root@47.95.119.8
+ 
+ 安装inotify，将拥有inotifywait、inotifywatch辅助工具程序，从而来监控、汇总文件系统改动情况。
+ incron这个名称就是inotify cron system的合体,意思就是基于inotify的cron系统;包含一个后台守护进程(incrond)和一个事件编辑器(incron);
+ apt-get incron
+ incrontab -e
+ 粘贴：root/hdfdata IN_CLOSE_WRITE,IN_CREATE,IN_DELETE /root/t.sh
+ 1.CTRL + O 
+ 2.CTAL + M 
+ 3.CTAL + X
+ vim t.sh
+ 写入：/usr/bin/rsync -az /root/hdfdata root@47.95.119.89:/root/hdfdata
+ chomd +x /root/t.sh
+ ☆☆☆☆☆ubuntu 上不是incrond ☆☆☆☆☆
+ systemctl restart incron.service
+ sh t.sh //执行脚本
+
+
+
+
+
+
+
+
