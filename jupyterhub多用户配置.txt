@@ -1,0 +1,87 @@
+
+
+基于Anaconda管理的多用户Jupyterhub平台
+
+anaconda + jupyterlab 多用户配置:
+1.下载anaconda 安装在/opt/anaconda3 或者 /var/anaconda3 无需配置anaconda
+
+2.linux创建用户：
+ 用户：
+ sudo useradd -m lw001
+ sudo useradd -m lw002
+ sudo useradd -m lw003
+
+ 密码：
+ sudo passwd lw001
+ sudo passwd lw002
+ sudo passwd lw003
+
+3.每个用户都加入环境变量
+cd ~ 
+ll .bashrc
+vi .bashrc  
+export PATH = /opt/anaconda3/bin:$PATH
+source ~/.bashrc
+加入 vi /etc/profile
+export PATH = /opt/anaconda3/bin:$PATH
+source /etc/profile
+
+4.安装jupyterhub
+
+sudo conda install -c conda-forge jupyterhub
+
+
+5.检查安装是否成功
+jupyterhub -h
+configurable-http-proxy -h
+
+6.创建jupyterhub的配置文件
+sudo mkdir jupyterhub
+cd jupyterhub
+生成配置文件：jupyterhub --generate-config 
+
+
+7.修改配置文件
+c.JupyterHub.ip = '192.168.168.170'
+c.JupyterHub.port = 8000
+
+c.JupyterHub.statsd_prefix = 'jupyterhub'
+#c.Spawner.cmd = ['jupyterhub-singleuser']
+管理用户：
+#c.Authenticator.admin_users = {'lw007'}
+# 白名单用户
+c.Authenticator.whitelist ={'lw007','lw001','lw002'}
+#配置jupyterhub使用jupyterlab
+c.Spawner.default_url='/lab'
+
+☆8.启动：要用sudo jupyterhub来启动,这样多用户才可以登录。☆
+
+启动在非root账户下：sudo vim /etc/sudoers
+
+将Defaults env_reset 更改为  Defaults !env_reset
+wq! 强制保存 
+编辑启动用户配置文件
+vim .bashrc
+在文件内最后追加：
+alias sudo='sudo env PATH=$PATH' 
+source ~/.bashrc 
+#加载配置文件启动
+jupyterhub --config=/etc/jupyterhub/jupyterhub.py --no-ssl
+
+9.尝试每个用户配置生成.jupyter默认启动加载里面的配置包括位置，启动的lab/tree
+
+
+
+
+
+
+参考：百度搜索：大专栏：jupyter配置多用户
+1.https://www.dazhuanlan.com/2020/03/03/5e5d73a771e10/?__cf_chl_jschl_tk__=ffb3d3c742dd5a56ada808b8062408766085dfcd-1601264196-0-Abwj24ozAl2Rlj3Y5XOrdZFwKrSUlo2uD1tfaUzLICl1ZLyU1OI8B-RWJK6ZeoiLddtxnW5ZgxJjeYrWgdQTieSklTTXPin7mnFniHV7RYxdNIWncZHmNXgIhcwWAjJ8ObbEq-6o1mIJwLwE3m8FfreclCEzYsuIhVb9YJRfhUlVYJZHMGNIseVpma6mb2VkGtHITOOv2bYm3TmlbXJrmFrYypMjFJKFB152JMpgM7QgAIa8634-phpjePGDBRrvPuOGZEWu6M6LnFTBwRlOYXE6uG6kpvTCIFOhCKzFFh4eDk8Flkt0fHrdShenvKIAFA
+2.https://zhuanlan.zhihu.com/p/52739122
+
+3.sudo执行命令时提示找不到该命令的解决办法
+
+
+
+
+
