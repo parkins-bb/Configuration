@@ -1,87 +1,90 @@
 
 
-»ùÓÚAnaconda¹ÜÀíµÄ¶àÓÃ»§JupyterhubÆ½Ì¨
+åŸºäºAnacondaç®¡ç†çš„å¤šç”¨æˆ·Jupyterhubå¹³å°
 
-anaconda + jupyterlab ¶àÓÃ»§ÅäÖÃ:
-1.ÏÂÔØanaconda °²×°ÔÚ/opt/anaconda3 »òÕß /var/anaconda3 ÎŞĞèÅäÖÃanaconda
+anaconda + jupyterlab å¤šç”¨æˆ·é…ç½®:
+1.ä¸‹è½½anaconda å®‰è£…åœ¨/opt/anaconda3 æˆ–è€… /var/anaconda3 æ— éœ€é…ç½®anaconda
 
-2.linux´´½¨ÓÃ»§£º
- ÓÃ»§£º
+2.linuxåˆ›å»ºç”¨æˆ·ï¼š
+ ç”¨æˆ·ï¼š
  sudo useradd -m lw001
  sudo useradd -m lw002
  sudo useradd -m lw003
 
- ÃÜÂë£º
+ å¯†ç ï¼š
  sudo passwd lw001
  sudo passwd lw002
  sudo passwd lw003
 
-3.Ã¿¸öÓÃ»§¶¼¼ÓÈë»·¾³±äÁ¿
+3.æ¯ä¸ªç”¨æˆ·éƒ½åŠ å…¥ç¯å¢ƒå˜é‡
 cd ~ 
 ll .bashrc
 vi .bashrc  
 export PATH = /opt/anaconda3/bin:$PATH
 source ~/.bashrc
-¼ÓÈë vi /etc/profile
+åŠ å…¥ vi /etc/profile
 export PATH = /opt/anaconda3/bin:$PATH
 source /etc/profile
 
-4.°²×°jupyterhub
+4.å®‰è£…jupyterhub
 
 sudo conda install -c conda-forge jupyterhub
 
 
-5.¼ì²é°²×°ÊÇ·ñ³É¹¦
+5.æ£€æŸ¥å®‰è£…æ˜¯å¦æˆåŠŸ
 jupyterhub -h
 configurable-http-proxy -h
 
-6.´´½¨jupyterhubµÄÅäÖÃÎÄ¼ş
+6.åˆ›å»ºjupyterhubçš„é…ç½®æ–‡ä»¶
 sudo mkdir jupyterhub
 cd jupyterhub
-Éú³ÉÅäÖÃÎÄ¼ş£ºjupyterhub --generate-config 
+ç”Ÿæˆé…ç½®æ–‡ä»¶ï¼šjupyterhub --generate-config 
 
 
-7.ĞŞ¸ÄÅäÖÃÎÄ¼ş
-c.JupyterHub.ip = '192.168.168.170'
+7.ä¿®æ”¹é…ç½®æ–‡ä»¶
+â˜†ä¸€å®šæ˜¯å†…ç½‘â˜†
+c.JupyterHub.ip = '192.168.168.170'â˜†â˜†â˜†å†…ç½‘ï¼Œä¸èƒ½ç”¨å¤–ç½‘
 c.JupyterHub.port = 8000
 
 c.JupyterHub.statsd_prefix = 'jupyterhub'
 #c.Spawner.cmd = ['jupyterhub-singleuser']
-¹ÜÀíÓÃ»§£º
+ç®¡ç†ç”¨æˆ·ï¼š
 #c.Authenticator.admin_users = {'lw007'}
-# °×Ãûµ¥ÓÃ»§
+# ç™½åå•ç”¨æˆ·
 c.Authenticator.whitelist ={'lw007','lw001','lw002'}
-#ÅäÖÃjupyterhubÊ¹ÓÃjupyterlab
+#é…ç½®jupyterhubä½¿ç”¨jupyterlab
 c.Spawner.default_url='/lab'
 
-¡î8.Æô¶¯£ºÒªÓÃsudo jupyterhubÀ´Æô¶¯,ÕâÑù¶àÓÃ»§²Å¿ÉÒÔµÇÂ¼¡£¡î
+â˜†8.å¯åŠ¨ï¼šè¦ç”¨sudo jupyterhubæ¥å¯åŠ¨,è¿™æ ·å¤šç”¨æˆ·æ‰å¯ä»¥ç™»å½•ã€‚â˜†
 
-Æô¶¯ÔÚ·ÇrootÕË»§ÏÂ£ºsudo vim /etc/sudoers
+å¯åŠ¨åœ¨érootè´¦æˆ·ä¸‹ï¼šsudo vim /etc/sudoers
 
-½«Defaults env_reset ¸ü¸ÄÎª  Defaults !env_reset
-wq! Ç¿ÖÆ±£´æ 
-±à¼­Æô¶¯ÓÃ»§ÅäÖÃÎÄ¼ş
+å°†Defaults env_reset æ›´æ”¹ä¸º  Defaults !env_reset
+wq! å¼ºåˆ¶ä¿å­˜ 
+ç¼–è¾‘å¯åŠ¨ç”¨æˆ·é…ç½®æ–‡ä»¶
 vim .bashrc
-ÔÚÎÄ¼şÄÚ×îºó×·¼Ó£º
+åœ¨æ–‡ä»¶å†…æœ€åè¿½åŠ ï¼š
 alias sudo='sudo env PATH=$PATH' 
 source ~/.bashrc 
-#¼ÓÔØÅäÖÃÎÄ¼şÆô¶¯
+#åŠ è½½é…ç½®æ–‡ä»¶å¯åŠ¨
 jupyterhub --config=/etc/jupyterhub/jupyterhub.py --no-ssl
 
-9.³¢ÊÔÃ¿¸öÓÃ»§ÅäÖÃÉú³É.jupyterÄ¬ÈÏÆô¶¯¼ÓÔØÀïÃæµÄÅäÖÃ°üÀ¨Î»ÖÃ£¬Æô¶¯µÄlab/tree
+9.å°è¯•æ¯ä¸ªç”¨æˆ·é…ç½®ç”Ÿæˆ.jupyteré»˜è®¤å¯åŠ¨åŠ è½½é‡Œé¢çš„é…ç½®åŒ…æ‹¬ä½ç½®ï¼Œå¯åŠ¨çš„lab/tree
 
 
 
 
 
 
-²Î¿¼£º°Ù¶ÈËÑË÷£º´ó×¨À¸£ºjupyterÅäÖÃ¶àÓÃ»§
+å‚è€ƒï¼šç™¾åº¦æœç´¢ï¼šå¤§ä¸“æ ï¼šjupyteré…ç½®å¤šç”¨æˆ·
 1.https://www.dazhuanlan.com/2020/03/03/5e5d73a771e10/?__cf_chl_jschl_tk__=ffb3d3c742dd5a56ada808b8062408766085dfcd-1601264196-0-Abwj24ozAl2Rlj3Y5XOrdZFwKrSUlo2uD1tfaUzLICl1ZLyU1OI8B-RWJK6ZeoiLddtxnW5ZgxJjeYrWgdQTieSklTTXPin7mnFniHV7RYxdNIWncZHmNXgIhcwWAjJ8ObbEq-6o1mIJwLwE3m8FfreclCEzYsuIhVb9YJRfhUlVYJZHMGNIseVpma6mb2VkGtHITOOv2bYm3TmlbXJrmFrYypMjFJKFB152JMpgM7QgAIa8634-phpjePGDBRrvPuOGZEWu6M6LnFTBwRlOYXE6uG6kpvTCIFOhCKzFFh4eDk8Flkt0fHrdShenvKIAFA
 2.https://zhuanlan.zhihu.com/p/52739122
 
-3.sudoÖ´ĞĞÃüÁîÊ±ÌáÊ¾ÕÒ²»µ½¸ÃÃüÁîµÄ½â¾ö°ì·¨
+3.sudoæ‰§è¡Œå‘½ä»¤æ—¶æç¤ºæ‰¾ä¸åˆ°è¯¥å‘½ä»¤çš„è§£å†³åŠæ³•
 
 
-
+é—®é¢˜ï¼šå¯åŠ¨æŠ¥é”™ï¼Œé‡æ–°å¯åŠ¨è¦åˆ é™¤ç™»å½•çš„æ–‡ä»¶ï¼Œkillæ‰configurable-http-proxyçº¿ç¨‹
+ps -aux|grep configurable-http-proxy 
+kill -9 çº¿ç¨‹å·
 
 
