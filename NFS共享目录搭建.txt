@@ -1,0 +1,29 @@
+★★★ECS的NFS端口为2049，需要放行此端口★★★
+
+服务器(共享目录服务):39.106.184.174
+客户端(挂载共享目录):39.97.248.173
+
+1.服务器:建立共享目录
+ mkdir /var/h5serv/data/block1
+2.服务端和客户端:安装NFS
+ apt-get install nfs-kernel-server
+ apt-get install rpcbind
+3.服务器:配置NFS服务器
+ vi /etc/exports
+ /var/h5serv/data/block1 39.106.184.174(rw,sync,no_root_squash,no_subtree_check)
+ /var/h5serv/data/block1 39.97.248.173(rw,sync,no_root_squash,no_subtree_check)
+4.客户端和服务器：重启NFS
+ /etc/init.d/nfs-kernel-server restart 
+ /etc/init.d/rpcbind restart
+5.客户端:挂载服务端的共享目录
+ mount -t nfs 39.106.184.174:/var/h5serv/data/block1 /var/h5serv/data/public/block1
+6.测试
+ 服务端：共享目录内新建文件touch 123.txt
+ 客户端：检查文件123.txt是否有
+
+注：取消挂载的命令
+客户端操作：umount /var/h5serv/data/public/block1
+
+
+ /var/hdf5 47.94.39.94(rw,sync,no_root_squash,no_subtree_check)
+ /var/hdf5 60.205.253.215(rw,sync,no_root_squash,no_subtree_check)
