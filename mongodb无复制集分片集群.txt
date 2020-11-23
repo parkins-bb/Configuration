@@ -1,5 +1,7 @@
-配置参考文档：https://blog.csdn.net/kevinmcy/article/details/82712074
-
+配置参考文档：
+https://blog.csdn.net/kevinmcy/article/details/82712074
+https://www.liangzl.com/get-article-detail-145275.html
+https://www.cnblogs.com/mysql-dba/p/5057559.html
 注意：
   MongoDB3.4开始,必须将配置服务器部署为副本集（CSRS）。
   MongoDB 3.6以后，每个分片都必须是副本集！
@@ -78,6 +80,7 @@ bind_ip=0.0.0.0
 5.2将分片配置为复制集
 各机器分别连接mongo分别初始化化
 ☆ 注：启动：47.94.95.35:27001 ☆
+mongo --host 47.94.95.35 --port 27001
 mongo --host:
 rs.initiate({_id:"shard1",members:[{_id:0,host:"47.94.95.35:27001"}]})
 rs.initiate({_id:"shard2",members:[{_id:0,host:"39.105.37.10:27001"}]})
@@ -95,7 +98,7 @@ bind_ip=0.0.0.0
 6.2启动mongos
 mongos -f /opt/mongodb/conf/mongos.conf
 7.启动分片功能
-
+在路由服务器上添加分片：配置mongos的服务器。
 连接mongo
 mongo --host 47.94.95.35 --port 27017
 切换数据库：
