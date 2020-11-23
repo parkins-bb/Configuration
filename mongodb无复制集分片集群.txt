@@ -56,7 +56,7 @@ bind_ip=0.0.0.0
 切换数据库：
   use admin
 初始化复制集：
-rs.initiate({_id:"configs",members:[{_id:0,host:"47.94.95.35:27018"},{_id:1,host:"39.105.37.10:27018"}{_id:2,host:"47.93.36.9:27018"},{_id:3,host:"182.92.189.62:27018"}]}
+rs.initiate({_id:"configs",members:[{_id:0,host:"47.94.95.35:27017"},{_id:1,host:"39.105.37.10:27017"}{_id:2,host:"47.93.36.9:27017"},{_id:3,host:"182.92.189.62:27017"}]}
 其中_id:"configs"的configs是上面config.conf配置文件里的复制集名称，把三台服务器的配置服务组成复制集。
 查看状态：
 rs.status()
@@ -77,6 +77,8 @@ bind_ip=0.0.0.0
 各个机器下分别启动：mongod -f /home/mongodb/conf/shard{1/2/3/4}.conf
 5.2将分片配置为复制集
 各机器分别连接mongo分别初始化化
+☆ 注：启动：47.94.95.35:27001 ☆
+mongo --host:
 rs.initiate({_id:"shard1",members:[{_id:0,host:"47.94.95.35:27001"}]})
 rs.initiate({_id:"shard2",members:[{_id:0,host:"39.105.37.10:27001"}]})
 rs.initiate({_id:"shard3",members:[{_id:0,host:"47.93.36.9:27001"}]})
